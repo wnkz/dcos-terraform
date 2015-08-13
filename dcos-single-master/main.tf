@@ -41,7 +41,7 @@ resource "aws_vpc_dhcp_options_association" "dns_resolver" {
 resource "aws_subnet" "public" {
     vpc_id = "${aws_vpc.dcos.id}"
     cidr_block = "10.0.4.0/22"
-    availability_zone = "us-east-1a"
+    availability_zone = "${var.aws_region}a"
     map_public_ip_on_launch = false
 
     tags {
@@ -52,7 +52,7 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
     vpc_id = "${aws_vpc.dcos.id}"
     cidr_block = "10.0.0.0/22"
-    availability_zone = "us-east-1a"
+    availability_zone = "${var.aws_region}a"
     map_public_ip_on_launch = false
 
     tags {

@@ -22,184 +22,173 @@ resource "aws_launch_configuration" "public_slave" {
 
     user_data = <<EOF
 #cloud-config
-write_files:
-  - path: /etc/mesosphere/setup-flags/repository-url
-    permissions: 0644
-    owner: root
-    content: |
-      https://downloads.mesosphere.io/dcos/stable
-
-  - path: /etc/mesosphere/roles/slave_public
-
-  - path: /etc/mesosphere/setup-packages/dcos-config--setup/pkginfo.json
-    content: '{}'
-  - path: /etc/mesosphere/setup-packages/dcos-config--setup/etc/mesos-dns.json
-    content: |
-      {
-        "zk": "zk://127.0.0.1:2181/mesos",
-        "refreshSeconds": 30,
-        "ttl": 60,
-        "domain": "mesos",
-        "port": 53,
-        "resolvers": ["10.0.0.2"],
-        "timeout": 5,
-        "listener": "0.0.0.0",
-        "email": "root.mesos-dns.mesos"
+"coreos":
+  "units":
+  - "command": |-
+      start
+    "content": |-
+      [Unit]
+      Description=Write out dynamic config values
+      [Service]
+      Type=oneshot
+      # TODO(cmaloney): Remove these and get rid of the bits that require them.
+      ExecStart=/usr/bin/bash -c "echo EXHIBITOR_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/hostname) >> /etc/mesosphere/setup-packages/dcos-provider-aws--setup/etc/cloudenv"
+      ExecStart=/usr/bin/bash -c "echo MARATHON_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/hostname) >> /etc/mesosphere/setup-packages/dcos-provider-aws--setup/etc/cloudenv"
+    "name": |-
+      config-writer.service
+  - "command": |-
+      stop
+    "mask": !!bool |-
+      true
+    "name": |-
+      etcd.service
+  - "command": |-
+      stop
+    "mask": !!bool |-
+      true
+    "name": |-
+      update-engine.service
+  - "command": |-
+      stop
+    "mask": !!bool |-
+      true
+    "name": |-
+      locksmithd.service
+  - "command": |-
+      stop
+    "name": |-
+      systemd-resolved.service
+  - "command": |-
+      start
+    "content": |
+      [Unit]
+      Description=Formats the /var/lib ephemeral drive
+      Before=var-lib.mount dbus.service
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/bin/bash -c '(blkid -t TYPE=ext4 | grep xvdb) || (/usr/sbin/mkfs.ext4 -F /dev/xvdb)'
+    "name": |-
+      format-var-lib-ephemeral.service
+  - "command": |-
+      start
+    "content": |-
+      [Unit]
+      Description=Mount /var/lib
+      Before=dbus.service
+      [Mount]
+      What=/dev/xvdb
+      Where=/var/lib
+      Type=ext4
+    "name": |-
+      var-lib.mount
+  - "command": |-
+      start
+    "content": |
+      [Unit]
+      Before=dcos.target
+      [Service]
+      Type=oneshot
+      ExecStartPre=/usr/bin/mkdir -p /etc/profile.d
+      ExecStart=/usr/bin/ln -sf /opt/mesosphere/environment.export /etc/profile.d/dcos.sh
+    "name": |-
+      link-env.service
+  - "content": |
+      [Unit]
+      Description=Download the DCOS
+      After=network-online.target
+      Wants=network-online.target
+      ConditionPathExists=!/opt/mesosphere/
+      [Service]
+      EnvironmentFile=/etc/mesosphere/setup-flags/bootstrap-id
+      Type=oneshot
+      ExecStartPre=/usr/bin/bash -c "until wget --progress=dot -e dotbytes=10M --continue https://downloads.mesosphere.com/dcos/EarlyAccess/bootstrap/${BOOTSTRAP_ID}.bootstrap.tar.xz -O /tmp/bootstrap.tar.xz; do echo 'failed to download'; sleep 5; done"
+      ExecStartPre=/usr/bin/mkdir -p /opt/mesosphere
+      ExecStart=/usr/bin/tar -axf /tmp/bootstrap.tar.xz -C /opt/mesosphere
+      ExecStartPost=-/usr/bin/rm -f /tmp/bootstrap.tar.xz
+    "name": |-
+      dcos-download.service
+  - "command": |-
+      start
+    "content": |-
+      [Unit]
+      Description=Prep the Pkgpanda working directories for this host.
+      Requires=dcos-download.service
+      After=dcos-download.service
+      [Service]
+      Type=oneshot
+      EnvironmentFile=/opt/mesosphere/environment
+      ExecStart=/opt/mesosphere/bin/pkgpanda setup --no-block-systemd
+      [Install]
+      WantedBy=multi-user.target
+    "enable": !!bool |-
+      true
+    "name": |-
+      dcos-setup.service
+  "update":
+    "reboot-strategy": |-
+      off
+"write_files":
+- "content": |
+    https://downloads.mesosphere.com/dcos/EarlyAccess
+  "owner": |-
+    root
+  "path": |-
+    /etc/mesosphere/setup-flags/repository-url
+  "permissions": !!int |-
+    420
+- "content": |
+    BOOTSTRAP_ID=134a0d9f7d6af6ca8d9591cc5f4e7ec4622f0f88
+  "owner": |-
+    root
+  "path": |-
+    /etc/mesosphere/setup-flags/bootstrap-id
+  "permissions": !!int |-
+    420
+- "content": |-
+    ["dcos-config--setup_19e2f83421adffea50484ca29c0c649a61df0d15"]
+  "owner": |-
+    root
+  "path": |-
+    /etc/mesosphere/setup-flags/cluster-packages.json
+  "permissions": !!int |-
+    420
+- "content": |
+    {
+      "environment": {
+        "PROVIDER": "aws"
       }
-  - path: /etc/mesosphere/setup-packages/dcos-config--setup/etc/mesos-master
-    content: |
-      MESOS_LOG_DIR=/var/log/mesos
-      MESOS_WORK_DIR=/var/lib/mesos/master
-      MESOS_ZK=zk://127.0.0.1:2181/mesos
-      MESOS_QUORUM=1
-      MESOS_CLUSTER=dcos-ea
-      MESOS_ROLES=slave_public
-  - path: /etc/mesosphere/setup-packages/dcos-config--setup/etc/mesos-slave
-    content: |
-      MESOS_MASTER=zk://leader.mesos:2181/mesos
-      MESOS_CONTAINERIZERS=docker,mesos
-      MESOS_LOG_DIR=/var/log/mesos
-      MESOS_EXECUTOR_REGISTRATION_TIMEOUT=5mins
-      MESOS_ISOLATION=cgroups/cpu,cgroups/mem
-      MESOS_WORK_DIR=/var/lib/mesos/slave
-      MESOS_RESOURCES=ports:[1025-2180,2182-3887,3889-5049,5052-8079,8082-8180,8182-65535]
-      MESOS_SLAVE_SUBSYSTEMS=cpu,memory
-  - path: /etc/mesosphere/setup-packages/dcos-config--setup/etc/mesos-slave-public
-    content: |
-      MESOS_MASTER=zk://leader.mesos:2181/mesos
-      MESOS_CONTAINERIZERS=docker,mesos
-      MESOS_LOG_DIR=/var/log/mesos
-      MESOS_EXECUTOR_REGISTRATION_TIMEOUT=5mins
-      MESOS_ISOLATION=cgroups/cpu,cgroups/mem
-      MESOS_WORK_DIR=/var/lib/mesos/slave
-      MESOS_RESOURCES=ports:[1-21,23-5050,5052-65535]
-      MESOS_SLAVE_SUBSYSTEMS=cpu,memory
-      MESOS_DEFAULT_ROLE=slave_public
-      MESOS_ATTRIBUTES=public_ip:true
-
-  - path: /etc/mesosphere/setup-packages/dcos-config--setup/etc/cloudenv
-    content: |
-      AWS_REGION=us-east-1
-      AWS_STACK_ID=arn:aws:cloudformation:us-east-1:377056401362:stack/dcos-ea/cd5acf30-3acf-11e5-9767-500150b34c18
-      AWS_STACK_NAME=dcos-ea
-      AWS_ACCESS_KEY_ID=AKIAIOC7DB4RXXJ5OFSQ
-      AWS_SECRET_ACCESS_KEY=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
-      ZOOKEEPER_CLUSTER_SIZE=1
-      MASTER_ELB=internal-dcos-ea-InternalMa-1G59QJV4DKIWK-2042233934.us-east-1.elb.amazonaws.com
-      EXTERNAL_ELB=dcos-ea-ElasticLoa-11FCHY9433KXM-1085728503.us-east-1.elb.amazonaws.com
-      # Must set FALLBACK_DNS to an AWS region-specific DNS server which returns
-      # the internal IP when doing lookups on AWS public hostnames.
-      FALLBACK_DNS=10.0.0.2
-  - path: /etc/mesosphere/setup-packages/dcos-config--setup/etc/exhibitor
-    content: |
-      AWS_S3_BUCKET=dcos-ea-exhibitors3bucket-8uy23n8zav0j
-      AWS_S3_PREFIX=dcos-ea
-      EXHIBITOR_WEB_UI_PORT=8181
-
-coreos:
-  update:
-    reboot-strategy: off
-  units:
-    - name: format-var-lib-ephemeral.service
-      command: start
-      content: |
-        [Unit]
-        Description=Formats the /var/lib ephemeral drive
-        Before=var-lib.mount dbus.service
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStart=/bin/bash -c '(blkid -t TYPE=ext4 | grep xvdb) || (/usr/sbin/mkfs.ext4 -F /dev/xvdb)'
-    - name: var-lib.mount
-      command: start
-      content: |
-        [Unit]
-        Description=Mount /var/lib
-        Before=dbus.service
-        [Mount]
-        What=/dev/xvdb
-        Where=/var/lib
-        Type=ext4
-
-    - name: etcd.service
-      mask: true
-      command: stop
-    - name: update-engine.service
-      mask: true
-      command: stop
-    - name: locksmithd.service
-      mask: true
-      command: stop
-    - name: systemd-resolved.service
-      command: stop
-    - name: config-writer.service
-      command: start
-      content: |
-        [Unit]
-        Description=Write out dynamic config values
-        [Service]
-        Type=oneshot
-        ExecStart=/usr/bin/bash -c "echo EXHIBITOR_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/hostname) >> /etc/mesosphere/setup-packages/dcos-config--setup/etc/cloudenv"
-        ExecStart=/usr/bin/bash -c "echo MARATHON_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/hostname) >> /etc/mesosphere/setup-packages/dcos-config--setup/etc/cloudenv"
-        ExecStart=/usr/bin/bash -c "echo MESOS_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/hostname) >> /etc/mesosphere/setup-packages/dcos-config--setup/etc/mesos-master"
-        ExecStart=/usr/bin/bash -c "echo MESOS_HOSTNAME=$(curl -s http://169.254.169.254/latest/meta-data/hostname) >> /etc/mesosphere/setup-packages/dcos-config--setup/etc/mesos-slave"
-
-    - name: link-env.service
-      command: start
-      content: |
-        [Unit]
-        Before=dcos.target
-        [Service]
-        Type=oneshot
-        ExecStartPre=/usr/bin/mkdir -p /etc/profile.d
-        ExecStart=/usr/bin/ln -sf /opt/mesosphere/environment.export /etc/profile.d/dcos.sh
-    - name: dcos-download.service
-      content: |
-        [Unit]
-        Description=Download the DCOS
-        After=network-online.target
-        Wants=network-online.target
-        ConditionPathExists=!/opt/mesosphere/
-        [Service]
-        Type=oneshot
-        ExecStartPre=/usr/bin/bash -c 'until wget --progress=dot -e dotbytes=10M --continue https://downloads.mesosphere.io/dcos/stable/bootstrap.tar.xz -O /tmp/bootstrap.tar.xz; do echo "failed to download"; sleep 5; done'
-        ExecStartPre=/usr/bin/mkdir -p /opt/mesosphere
-        ExecStart=/usr/bin/tar -axf /tmp/bootstrap.tar.xz -C /opt/mesosphere
-    - name: dcos-setup.service
-      command: start
-      enable: true
-      content: |
-        [Unit]
-        Description=Prep the Pkgpanda working directories for this host.
-        Requires=dcos-download.service
-        After=dcos-download.service
-        [Service]
-        Type=oneshot
-        EnvironmentFile=/opt/mesosphere/environment
-        ExecStart=/opt/mesosphere/bin/pkgpanda setup --no-block-systemd
-        [Install]
-        WantedBy=multi-user.target
-    - name: cfn-signal.service
-      command: start
-      content: |
-        [Unit]
-        Description=Signal CloudFormation Success
-        After=dcos.target
-        Requires=dcos.target
-        ConditionPathExists=!/var/lib/cfn-signal
-        [Service]
-        Type=simple
-        Restart=on-failure
-        StartLimitInterval=0
-        RestartSec=15s
-        ExecStartPre=/usr/bin/docker pull mbabineau/cfn-bootstrap
-        ExecStartPre=/bin/ping -c1 leader.mesos
-        ExecStartPre=/usr/bin/docker run --rm mbabineau/cfn-bootstrap \
-          cfn-signal -e 0 \
-          --resource PublicSlaveServerGroup \
-          --stack dcos-ea \
-          --region us-east-1
-        ExecStart=/usr/bin/touch /var/lib/cfn-signal
+    }
+  "path": |-
+    /etc/mesosphere/setup-packages/dcos-provider-aws--setup/pkginfo.json
+- "content": |
+    AWS_REGION=us-east-1
+    AWS_ACCESS_KEY_ID=${aws_iam_access_key.dcos.id}
+    AWS_SECRET_ACCESS_KEY=${aws_iam_access_key.dcos.secret}
+    ZOOKEEPER_CLUSTER_SIZE=1
+    MASTER_ELB=${aws_elb.internal.dns_name}
+    EXTERNAL_ELB=${aws_elb.default.dns_name}
+    # Must set FALLBACK_DNS to an AWS region-specific DNS server which returns
+    # the internal IP when doing lookups on AWS public hostnames.
+    FALLBACK_DNS=10.0.0.2
+  "path": |-
+    /etc/mesosphere/setup-packages/dcos-provider-aws--setup/etc/cloudenv
+- "content": |
+    MESOS_CLUSTER=dcos
+  "path": |-
+    /etc/mesosphere/setup-packages/dcos-provider-aws--setup/etc/mesos-master-provider
+- "content": |
+    AWS_S3_BUCKET=${aws_s3_bucket.exhibitor.id}
+    AWS_S3_PREFIX=dcos
+    EXHIBITOR_WEB_UI_PORT=8181
+  "path": |-
+    /etc/mesosphere/setup-packages/dcos-provider-aws--setup/etc/exhibitor
+- "content": ""
+  "path": |-
+    /etc/mesosphere/roles/slave_public
+- "content": ""
+  "path": |-
+    /etc/mesosphere/roles/aws
 EOF
 }
 

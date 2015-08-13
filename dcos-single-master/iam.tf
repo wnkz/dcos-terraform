@@ -3,6 +3,10 @@ resource "aws_iam_user" "dcos" {
     path = "/"
 }
 
+resource "aws_iam_access_key" "dcos" {
+    user = "${aws_iam_user.dcos.name}"
+}
+
 resource "aws_iam_user_policy" "root" {
     name   = "root"
     user   = "${aws_iam_user.dcos.name}"
@@ -76,8 +80,8 @@ resource "aws_iam_role_policy" "root" {
   "Statement": [
     {
       "Resource": [
-        "arn:aws:s3:::dcos-ea-exhibitors3bucket-8uy23n8zav0j/*",
-        "arn:aws:s3:::dcos-ea-exhibitors3bucket-8uy23n8zav0j"
+        "arn:aws:s3:::${aws_s3_bucket.exhibitor.id}/*",
+        "arn:aws:s3:::${aws_s3_bucket.exhibitor.id}"
       ],
       "Action": [
         "s3:AbortMultipartUpload",
@@ -91,16 +95,6 @@ resource "aws_iam_role_policy" "root" {
         "s3:ListMultipartUploadParts",
         "s3:PutObject",
         "s3:PutObjectAcl"
-      ],
-      "Effect": "Allow"
-    },
-    {
-      "Resource": [
-        "arn:aws:cloudformation:us-east-1:377056401362:stack/dcos-ea/cd5acf30-3acf-11e5-9767-500150b34c18",
-        "arn:aws:cloudformation:us-east-1:377056401362:stack/dcos-ea/cd5acf30-3acf-11e5-9767-500150b34c18/*"
-      ],
-      "Action": [
-        "cloudformation:*"
       ],
       "Effect": "Allow"
     },
