@@ -16,7 +16,7 @@ resource "aws_vpc" "dcos" {
         "Environment" = "dcos"
     }
 }
-resource "aws_internet_gateway" "gw" {
+resource "aws_internet_gateway" "main" {
     vpc_id = "${aws_vpc.dcos.id}"
 
     tags {
