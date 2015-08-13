@@ -15,8 +15,4 @@ resource "aws_autoscaling_group" "public_slave" {
   lifecycle {
       create_before_destroy = true
   }
-
-  tags {
-      "Environment" = "dcos"
-  }
 }

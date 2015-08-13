@@ -102,7 +102,7 @@ resource "aws_launch_configuration" "public_slave" {
       [Service]
       EnvironmentFile=/etc/mesosphere/setup-flags/bootstrap-id
       Type=oneshot
-      ExecStartPre=/usr/bin/bash -c "until wget --progress=dot -e dotbytes=10M --continue https://downloads.mesosphere.com/dcos/EarlyAccess/bootstrap/${BOOTSTRAP_ID}.bootstrap.tar.xz -O /tmp/bootstrap.tar.xz; do echo 'failed to download'; sleep 5; done"
+      ExecStartPre=/usr/bin/bash -c "until wget --progress=dot -e dotbytes=10M --continue https://downloads.mesosphere.com/dcos/EarlyAccess/bootstrap/$${BOOTSTRAP_ID}.bootstrap.tar.xz -O /tmp/bootstrap.tar.xz; do echo 'failed to download'; sleep 5; done"
       ExecStartPre=/usr/bin/mkdir -p /opt/mesosphere
       ExecStart=/usr/bin/tar -axf /tmp/bootstrap.tar.xz -C /opt/mesosphere
       ExecStartPost=-/usr/bin/rm -f /tmp/bootstrap.tar.xz
@@ -190,7 +190,6 @@ resource "aws_launch_configuration" "public_slave" {
   "path": |-
     /etc/mesosphere/roles/aws
 EOF
-}
 
     lifecycle {
         create_before_destroy = true

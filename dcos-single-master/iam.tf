@@ -74,7 +74,7 @@ POLICY
 
 resource "aws_iam_role_policy" "root" {
     name = "root"
-    role = "${aws_iam_role.master.unique_id}"
+    role = "${aws_iam_role.master.id}"
     policy = <<POLICY
 {
   "Statement": [
@@ -120,5 +120,5 @@ POLICY
 resource "aws_iam_instance_profile" "master" {
     name  = "dcos-MasterInstanceProfile"
     path  = "/"
-    roles = ["${aws_iam_role.master.unique_id}"]
+    roles = ["${aws_iam_role.master.id}"]
 }

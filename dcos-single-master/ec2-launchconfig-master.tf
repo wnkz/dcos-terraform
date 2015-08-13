@@ -3,7 +3,7 @@ resource "aws_launch_configuration" "master" {
     instance_type = "m4.xlarge"
     key_name = "${var.key_name}"
     security_groups = ["${aws_security_group.master.id}", "${aws_security_group.admin.id}"]
-    associate_public_ip_address = false
+    associate_public_ip_address = true
     enable_monitoring = true
     ebs_optimized = true
     iam_instance_profile = "${aws_iam_instance_profile.master.name}"
@@ -103,7 +103,7 @@ resource "aws_launch_configuration" "master" {
       [Service]
       EnvironmentFile=/etc/mesosphere/setup-flags/bootstrap-id
       Type=oneshot
-      ExecStartPre=/usr/bin/bash -c "until wget --progress=dot -e dotbytes=10M --continue https://downloads.mesosphere.com/dcos/EarlyAccess/bootstrap/${BOOTSTRAP_ID}.bootstrap.tar.xz -O /tmp/bootstrap.tar.xz; do echo 'failed to download'; sleep 5; done"
+      ExecStartPre=/usr/bin/bash -c "until wget --progress=dot -e dotbytes=10M --continue https://downloads.mesosphere.com/dcos/EarlyAccess/bootstrap/$${BOOTSTRAP_ID}.bootstrap.tar.xz -O /tmp/bootstrap.tar.xz; do echo 'failed to download'; sleep 5; done"
       ExecStartPre=/usr/bin/mkdir -p /opt/mesosphere
       ExecStart=/usr/bin/tar -axf /tmp/bootstrap.tar.xz -C /opt/mesosphere
       ExecStartPost=-/usr/bin/rm -f /tmp/bootstrap.tar.xz
@@ -194,7 +194,6 @@ resource "aws_launch_configuration" "master" {
   "path": |-
     /etc/mesosphere/roles/aws
 EOF
-}
 
     lifecycle {
         create_before_destroy = true

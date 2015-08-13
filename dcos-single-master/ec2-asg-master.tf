@@ -10,13 +10,9 @@ resource "aws_autoscaling_group" "master" {
   force_delete = true
   vpc_zone_identifier = ["${aws_subnet.public.id}"]
   launch_configuration = "${aws_launch_configuration.master.name}"
-  load_balancers = ["${aws_elb.default.name}", "${aws_elb.master.name}"]
+  load_balancers = ["${aws_elb.default.name}", "${aws_elb.internal.name}"]
 
   lifecycle {
       create_before_destroy = true
-  }
-
-  tags {
-      "Environment" = "dcos"
   }
 }
