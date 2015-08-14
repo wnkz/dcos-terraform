@@ -55,6 +55,14 @@ variable "public_subnet_range" {
   default = "10.0.4.0/22"
 }
 
+variable "slave_instance_count" {
+  default = 5
+}
+
+variable "public_slave_instance_count" {
+  default = 1
+}
+
 variable "master_instance_type" {
   default = "m4.xlarge"
 }

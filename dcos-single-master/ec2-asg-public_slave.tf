@@ -1,9 +1,9 @@
 resource "aws_autoscaling_group" "public_slave" {
   availability_zones = ["${var.aws_region}a"]
   name = "dcos-PublicSlaveServerGroup"
-  desired_capacity = 1
-  max_size = 1
-  min_size = 1
+  desired_capacity = "${var.public_slave_instance_count}"
+  max_size = "${var.public_slave_instance_count}"
+  min_size = "${var.public_slave_instance_count}"
   default_cooldown = 300
   health_check_grace_period = 0
   health_check_type = "EC2"

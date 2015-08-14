@@ -139,7 +139,7 @@ resource "aws_launch_configuration" "master" {
   "permissions": !!int |-
     420
 - "content": |
-    BOOTSTRAP_ID=134a0d9f7d6af6ca8d9591cc5f4e7ec4622f0f88
+    BOOTSTRAP_ID=9e9fb00a14d28255246585f1088cdf81dcf121c2
   "owner": |-
     root
   "path": |-
@@ -147,7 +147,7 @@ resource "aws_launch_configuration" "master" {
   "permissions": !!int |-
     420
 - "content": |-
-    ["dcos-config--setup_19e2f83421adffea50484ca29c0c649a61df0d15"]
+    ["dcos-config--setup_f85e9b37baa6a6e576295efa91ae64d15a3d2320"]
   "owner": |-
     root
   "path": |-

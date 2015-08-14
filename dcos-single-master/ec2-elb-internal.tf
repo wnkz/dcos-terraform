@@ -6,6 +6,7 @@ resource "aws_elb" "internal" {
     idle_timeout = 60
     connection_draining = false
     connection_draining_timeout = 300
+    internal = true
 
     listener {
         instance_port = 8181
