@@ -1,6 +1,6 @@
 resource "aws_launch_configuration" "slave" {
     image_id = "${lookup(var.coreos_amis, var.aws_region)}"
-    instance_type = "m4.xlarge"
+    instance_type = "${var.slave_instance_type}"
     key_name = "${var.key_name}"
     security_groups = ["${aws_security_group.slave.id}"]
     associate_public_ip_address = false
@@ -14,7 +14,7 @@ resource "aws_launch_configuration" "slave" {
     }
 
     ebs_block_device {
-        device_name = "/dev/sdb"
+        device_name = "/dev/xvdb"
         volume_type = "gp2"
         volume_size = 100
         delete_on_termination = true
@@ -162,7 +162,7 @@ resource "aws_launch_configuration" "slave" {
   "path": |-
     /etc/mesosphere/setup-packages/dcos-provider-aws--setup/pkginfo.json
 - "content": |
-    AWS_REGION=us-east-1
+    AWS_REGION=${var.aws_region}
     AWS_ACCESS_KEY_ID=${aws_iam_access_key.dcos.id}
     AWS_SECRET_ACCESS_KEY=${aws_iam_access_key.dcos.secret}
     ZOOKEEPER_CLUSTER_SIZE=1

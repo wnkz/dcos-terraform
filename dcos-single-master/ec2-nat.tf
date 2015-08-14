@@ -1,8 +1,8 @@
 resource "aws_instance" "nat" {
-    ami = "${lookup(var.coreos_amis, var.aws_region)}"
-    availability_zone = "us-east-1a"
+    ami = "${lookup(var.nat_amis, var.aws_region)}"
+    availability_zone = "${var.aws_region}a"
     ebs_optimized = false
-    instance_type = "m3.medium"
+    instance_type = "${var.nat_instance_type}"
     key_name = "${var.key_name}"
     subnet_id = "${aws_subnet.public.id}"
     vpc_security_group_ids = ["${aws_security_group.slave.id}", "${aws_security_group.admin.id}", "${aws_security_group.master.id}"]

@@ -1,5 +1,5 @@
 resource "aws_autoscaling_group" "slave" {
-  availability_zones = ["us-east-1a"]
+  availability_zones = ["${var.aws_region}a"]
   name = "dcos-SlaveServerGroup"
   desired_capacity = 5
   max_size = 5

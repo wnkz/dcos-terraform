@@ -6,7 +6,7 @@ provider "aws" {
 }
 
 resource "aws_vpc" "dcos" {
-    cidr_block = "10.0.0.0/16"
+    cidr_block = "${var.vpc_subnet_range}"
     enable_dns_hostnames = true
     enable_dns_support = true
     instance_tenancy = "default"
@@ -40,22 +40,24 @@ resource "aws_vpc_dhcp_options_association" "dns_resolver" {
 
 resource "aws_subnet" "public" {
     vpc_id = "${aws_vpc.dcos.id}"
-    cidr_block = "10.0.4.0/22"
+    cidr_block = "${var.public_subnet_range}"
     availability_zone = "${var.aws_region}a"
     map_public_ip_on_launch = false
 
     tags {
+        "Name" = "public"
         "Environment" = "dcos"
     }
 }
 
 resource "aws_subnet" "private" {
     vpc_id = "${aws_vpc.dcos.id}"
-    cidr_block = "10.0.0.0/22"
+    cidr_block = "${var.private_subnet_range}"
     availability_zone = "${var.aws_region}a"
     map_public_ip_on_launch = false
 
     tags {
+        "Name" = "private"
         "Environment" = "dcos"
     }
 }

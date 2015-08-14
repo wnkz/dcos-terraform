@@ -1,5 +1,5 @@
 resource "aws_autoscaling_group" "master" {
-  availability_zones = ["us-east-1a"]
+  availability_zones = ["${var.aws_region}a"]
   name = "dcos-MasterServerGroup"
   desired_capacity = 1
   max_size = 1
