@@ -8,7 +8,7 @@ resource "aws_security_group" "slave" {
     }
 }
 
-resource "aws_security_group_rule" "slave1" {
+resource "aws_security_group_rule" "slave" {
     type = "ingress"
     from_port = 0
     to_port = 0
@@ -18,7 +18,7 @@ resource "aws_security_group_rule" "slave1" {
     security_group_id = "${aws_security_group.slave.id}"
 }
 
-resource "aws_security_group_rule" "slave2" {
+resource "aws_security_group_rule" "master_to_slave" {
     type = "ingress"
     from_port = 0
     to_port = 0
@@ -28,7 +28,7 @@ resource "aws_security_group_rule" "slave2" {
     source_security_group_id = "${aws_security_group.master.id}"
 }
 
-resource "aws_security_group_rule" "slave3" {
+resource "aws_security_group_rule" "public_slave_to_slave" {
     type = "ingress"
     from_port = 0
     to_port = 0
@@ -38,7 +38,7 @@ resource "aws_security_group_rule" "slave3" {
     source_security_group_id = "${aws_security_group.public_slave.id}"
 }
 
-resource "aws_security_group_rule" "slave4" {
+resource "aws_security_group_rule" "slave_outbound" {
     type = "egress"
     from_port = 0
     to_port = 0

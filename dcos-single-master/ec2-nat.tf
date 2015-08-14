@@ -16,7 +16,7 @@ resource "aws_instance" "nat" {
     }
 
     tags {
-        "Name" = "NAT"
+        "Name" = "nat"
         "Environment" = "dcos"
     }
 }

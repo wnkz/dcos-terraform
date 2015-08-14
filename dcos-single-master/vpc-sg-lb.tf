@@ -8,7 +8,7 @@ resource "aws_security_group" "lb" {
     }
 }
 
-resource "aws_security_group_rule" "lb1" {
+resource "aws_security_group_rule" "slave_to_lb" {
     type = "ingress"
     from_port = 2181
     to_port = 2181
@@ -18,7 +18,7 @@ resource "aws_security_group_rule" "lb1" {
     source_security_group_id = "${aws_security_group.slave.id}"
 }
 
-resource "aws_security_group_rule" "lb2" {
+resource "aws_security_group_rule" "lb_outbound" {
     type = "egress"
     from_port = 0
     to_port = 0

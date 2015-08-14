@@ -1,9 +1,9 @@
 variable "aws_access_key" {
-  description = "AWS Access Key"
+    description = "AWS Access Key"
 }
 
 variable "aws_secret_key" {
-  description = "AWS Secret Key"
+    description = "AWS Secret Key"
 }
 
 variable "key_name" {
@@ -43,38 +43,43 @@ variable "nat_amis" {
     }
 }
 
+variable "admin_location" {
+    description = "Public CIDR of the Admin"
+    default = "0.0.0.0/0"
+}
+
 variable "vpc_subnet_range" {
-  default = "10.0.0.0/16"
+    default = "10.0.0.0/16"
 }
 
 variable "private_subnet_range" {
-  default = "10.0.0.0/22"
+    default = "10.0.0.0/22"
 }
 
 variable "public_subnet_range" {
-  default = "10.0.4.0/22"
+    default = "10.0.4.0/22"
 }
 
 variable "slave_instance_count" {
-  default = 5
+    default = 5
 }
 
 variable "public_slave_instance_count" {
-  default = 1
+    default = 1
 }
 
 variable "master_instance_type" {
-  default = "m4.xlarge"
+    default = "m4.xlarge"
 }
 
 variable "slave_instance_type" {
-  default = "m4.xlarge"
+    default = "m4.xlarge"
 }
 
 variable "public_slave_instance_type" {
-  default = "m4.xlarge"
+    default = "m4.xlarge"
 }
 
 variable "nat_instance_type" {
-  default = "m3.medium"
+    default = "m3.medium"
 }

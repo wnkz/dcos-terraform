@@ -8,7 +8,7 @@ resource "aws_security_group" "master" {
     }
 }
 
-resource "aws_security_group_rule" "master1" {
+resource "aws_security_group_rule" "master" {
     type = "ingress"
     from_port = 0
     to_port = 0
@@ -18,7 +18,7 @@ resource "aws_security_group_rule" "master1" {
     security_group_id = "${aws_security_group.master.id}"
 }
 
-resource "aws_security_group_rule" "master2" {
+resource "aws_security_group_rule" "slave_to_master" {
     type = "ingress"
     from_port = 0
     to_port = 0
@@ -28,7 +28,7 @@ resource "aws_security_group_rule" "master2" {
     source_security_group_id = "${aws_security_group.slave.id}"
 }
 
-resource "aws_security_group_rule" "master3" {
+resource "aws_security_group_rule" "public_slave_to_master" {
     type = "ingress"
     from_port = 0
     to_port = 0
@@ -38,7 +38,7 @@ resource "aws_security_group_rule" "master3" {
     source_security_group_id = "${aws_security_group.public_slave.id}"
 }
 
-resource "aws_security_group_rule" "master4" {
+resource "aws_security_group_rule" "lb_to_master1" {
     type = "ingress"
     from_port = 5050
     to_port = 5050
@@ -48,7 +48,7 @@ resource "aws_security_group_rule" "master4" {
     source_security_group_id = "${aws_security_group.lb.id}"
 }
 
-resource "aws_security_group_rule" "master5" {
+resource "aws_security_group_rule" "lb_to_master2" {
     type = "ingress"
     from_port = 2181
     to_port = 2181
@@ -58,7 +58,7 @@ resource "aws_security_group_rule" "master5" {
     source_security_group_id = "${aws_security_group.lb.id}"
 }
 
-resource "aws_security_group_rule" "master6" {
+resource "aws_security_group_rule" "lb_to_master3" {
     type = "ingress"
     from_port = 8181
     to_port = 8181
@@ -68,7 +68,7 @@ resource "aws_security_group_rule" "master6" {
     source_security_group_id = "${aws_security_group.lb.id}"
 }
 
-resource "aws_security_group_rule" "master7" {
+resource "aws_security_group_rule" "lb_to_master4" {
     type = "ingress"
     from_port = 8080
     to_port = 8080
@@ -78,7 +78,7 @@ resource "aws_security_group_rule" "master7" {
     source_security_group_id = "${aws_security_group.lb.id}"
 }
 
-resource "aws_security_group_rule" "master8" {
+resource "aws_security_group_rule" "lb_to_master5" {
     type = "ingress"
     from_port = 80
     to_port = 80
@@ -88,7 +88,7 @@ resource "aws_security_group_rule" "master8" {
     source_security_group_id = "${aws_security_group.lb.id}"
 }
 
-resource "aws_security_group_rule" "master9" {
+resource "aws_security_group_rule" "master_outbound" {
     type = "egress"
     from_port = 0
     to_port = 0
