@@ -9,7 +9,7 @@ The AWS resources deployed by this project are **not** free, you are the only re
 
 ## What is this ?
 
-Currently, https://github.com/wnkz/dcos-terraform/tree/master/dcos-single-master deploys DCOS 1.1 early access. I plan to add / update different version as DCOS evolves.
+Currently, [dcos-single-master](dcos-single-master) deploys DCOS 1.1 early access. I plan to add / update different version as DCOS evolves.
 
 ## Differences with CloudFormation template
 
@@ -32,7 +32,7 @@ terraform apply -var 'key_name=PRIVATE_KEY_NAME' -var 'aws_access_key=YOUR_ACCES
 
 If you do not specify an `admin_location` variable, access will be allowed to `0.0.0.0/0`
 
-See https://github.com/wnkz/dcos-terraform/blob/master/dcos-single-master/variables.tf for all the variable you can change with the `-var` Terraform flag.
+See [variables.tf](dcos-single-master/variables.tf) for all the variable you can change with the `-var` Terraform flag.
 
 ## Known issues
 
@@ -48,6 +48,6 @@ sed -i '' -e 's/create_before_destroy = false/create_before_destroy = true/g' dc
 
 ## TODOs
 
-- [] Fix `create_before_destroy` issues
-- [] Support multi master HA DCOS install
-- [] More customization
+- [ ] Fix `create_before_destroy` issues
+- [ ] Support multi master HA DCOS install
+- [ ] More customization
